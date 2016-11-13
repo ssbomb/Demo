@@ -1,1 +1,4 @@
 # Goeuro
+## Install
+	
+	    pod install
