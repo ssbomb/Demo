@@ -30,8 +30,6 @@
     self.flightTableView.delegate = self;
     self.flightTableView.dataSource = self;
     
-//    if(self.imageManager == nil)
-//        self.imageManager = [SDWebImageManager sharedManager];
     loadingData = false;
     self.pagecount = 0;
     self.fetchArray = [[NSMutableArray alloc]init];

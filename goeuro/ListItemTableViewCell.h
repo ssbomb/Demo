@@ -14,6 +14,5 @@
 @property (weak, nonatomic) IBOutlet UILabel *price;
 @property (weak, nonatomic) IBOutlet UILabel *direct;
 
-@property (nonatomic, strong) IBOutlet UIImageView *artWorkImageView;
-@property (nonatomic, strong) IBOutlet UILabel *playListNameLabel;
+
 @end

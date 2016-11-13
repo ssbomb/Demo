@@ -28,11 +28,6 @@
 
 - (void)setup
 {
-//    self.storeClient = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:@"https://api.myjson.com/"] ];
-//    [self.storeClient setParameterEncoding:AFJSONParameterEncoding];
-    
-//    [self.storeClient registerHTTPOperationClass:[AFJSONRequestOperation class]];
-
     self.operationQueue = [[NSOperationQueue alloc] init];
     
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
@@ -53,20 +48,6 @@
                         
                         
                     }];
-    
-//    [self.storeClient setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-//        
-//        if(status == AFNetworkReachabilityStatusNotReachable)
-//        {
-//            [[NSNotificationCenter defaultCenter] postNotificationName:NETWORK_DISCONNECTED_NOTIF object:nil];
-//        }
-//        else
-//        {
-//            [[NSNotificationCenter defaultCenter] postNotificationName:NETWORK_CONNECTED_NOTIF object:nil];
-//        }
-//        
-//    }];
-    
 }
 
 -(AFHTTPRequestOperation *)callBaseApiwithBaseHost:(NSString*)basehost
@@ -97,7 +78,6 @@
     [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject)
      {
          [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-             NSLog(@"----[responseObject]===%@--------",responseObject);
              successCompletion([responseObject copy]);
          }];
      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
