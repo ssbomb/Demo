@@ -2,11 +2,12 @@
 //  BaseViewController.m
 //  goeuro
 //
-//  Created by Lezyne on 2016/11/10.
+//  Created by Ray on 2016/11/10.
 //  Copyright © 2016年 test. All rights reserved.
 //
 
 #import "BaseViewController.h"
+#import "DemoManager.h"
 
 @interface BaseViewController ()
 
@@ -17,6 +18,11 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    self.demoManager = [DemoManager sharedInstance];
+    if(self.imageManager == nil)
+        self.imageManager = [SDWebImageManager sharedManager];
+    
+
 }
 
 - (void)didReceiveMemoryWarning {

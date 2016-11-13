@@ -2,14 +2,24 @@
 //  FlightTableViewController.m
 //  goeuro
 //
-//  Created by Lezyne on 2016/10/21.
+//  Created by Ray on 2016/10/21.
 //  Copyright © 2016年 test. All rights reserved.
 //
 
 #import "FlightTableViewController.h"
+#import "ListItemTableViewCell.h"
+#import "Trip.h"
+#import <UIImageView+AFNetworking.h>
 
 @interface FlightTableViewController ()
-
+{
+    BOOL priceAscending;
+    BOOL stopAscending;
+    BOOL loadingData;
+}
+@property (nonatomic, strong) NSMutableArray *fetchArray;
+@property (nonatomic, strong) NSArray *subArray;
+@property (nonatomic, assign) NSInteger pagecount;
 @end
 
 @implementation FlightTableViewController
@@ -17,12 +27,166 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    self.flightTableView.delegate = self;
+    self.flightTableView.dataSource = self;
+    
+//    if(self.imageManager == nil)
+//        self.imageManager = [SDWebImageManager sharedManager];
+    loadingData = false;
+    self.pagecount = 0;
+    self.fetchArray = [[NSMutableArray alloc]init];
+    self.fetchArray = [Trip getTrips:2];
+    if ([self.fetchArray count] > 0) {
+        self.subArray = [self.fetchArray subarrayWithRange:NSMakeRange(self.pagecount, 10)];
+        self.pagecount +=10;
+    }else{
+        [self.demoManager getDatafromServer:2 withSucess:^(NSMutableArray *result) {
+            self.fetchArray =result;
+            self.subArray = [self.fetchArray subarrayWithRange:NSMakeRange(self.pagecount, 10)];
+            self.pagecount +=10;
+            [self.flightTableView reloadData];
+        }];
+        
+    }
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    NSLog(@"FlightTableViewController viewWillAppear");
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    // Return the number of sections.
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    // Return the number of rows in the section.
+    return self.subArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *cellIdentifier = @"ListItemTableViewCell";
+    ListItemTableViewCell * cell = [self.flightTableView dequeueReusableCellWithIdentifier:cellIdentifier];
+    if (!cell) {
+        cell = [[ListItemTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
+    }
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    Trip *trip = [self.subArray objectAtIndex:indexPath.row];
+    cell.price.text =[trip getPrice:trip.priceInEuros];
+    cell.travelTime.text = [trip getTravelTimeDeparture:trip.departureTime Arrival:trip.arrivalTime stop:trip.numberOfStops];
+    [self loadImageURL:[NSURL URLWithString:trip.providerLogo] forImageView:cell.travelLogo];
+    cell.direct.text = [trip getDireectTimeDeparture:trip.departureTime Arrival:trip.arrivalTime];
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    //DetailViewController *detailVC = [[DetailViewController alloc]initWithNibName:@"DetailViewController" bundle:nil];
+    //[self.navigationController pushViewController:detailVC animated:YES];
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSInteger lastSectionIndex = [tableView numberOfSections] - 1;
+    NSInteger lastRowIndex = [tableView numberOfRowsInSection:lastSectionIndex] - 1;
+    if ((indexPath.section == lastSectionIndex) && (indexPath.row == lastRowIndex)) {
+        loadingData = true;
+        [self loadMore];
+    }
+}
+
+- (void)loadMore
+{
+    if (loadingData && !(self.pagecount+1 > [self.fetchArray count])) {
+        NSArray *nextArray =[self.fetchArray subarrayWithRange:NSMakeRange(self.pagecount, 10)];
+        self.subArray =[self.subArray arrayByAddingObjectsFromArray:nextArray];
+        self.pagecount +=10;
+        [self.flightTableView reloadData];
+        loadingData = false;
+    }else{
+        loadingData = false;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 96;
+}
+
+- (void)loadImageURL:(NSURL *)url forImageView:(UIImageView *)imageView
+{
+    [self.imageManager downloadImageWithURL:url
+                                    options:0
+                                   progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+                                       
+                                   }
+                                  completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                                      imageView.image = image;
+                                  }];
+    
+}
+
+-(void)postListViewAction
+{
+    
+}
+-(void)sortClicked:(id)sender
+{
+}
+
+-(void)postAction
+{
+    
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Sort",@"Sort")
+                                                                         message:nil
+                                                                  preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    [actionSheet addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel",@"Cancel") style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        
+        
+        [self dismissViewControllerAnimated:YES completion:^{
+        }];
+    }]];
+    
+    [actionSheet addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Sort By Price",@"Sort By Price") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self sortByPrice];
+    }]];
+    
+    [actionSheet addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Sort By Stop",@"Sort By Stop") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [self sortByStop];
+        
+    }]];
+    [self presentViewController:actionSheet animated:YES completion:nil];
+    
+    
+}
+
+-(void)sortByPrice
+{
+    [self.fetchArray sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"priceInEuros" ascending:priceAscending]]];
+    priceAscending = !priceAscending;
+    self.pagecount = 0;
+    self.subArray = [self.fetchArray subarrayWithRange:NSMakeRange(self.pagecount, self.pagecount+10)];
+    [self.flightTableView reloadData];
+}
+
+-(void)sortByStop
+{
+    [self.fetchArray sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"numberOfStops" ascending:stopAscending]]];
+    stopAscending = !stopAscending;
+    self.pagecount = 0;
+    self.subArray = [self.fetchArray subarrayWithRange:NSMakeRange(self.pagecount, self.pagecount+10)];
+    [self.flightTableView reloadData];
+}
+
 
 /*
 #pragma mark - Navigation

@@ -2,11 +2,12 @@
 //  AppDelegate.m
 //  goeuro
 //
-//  Created by Lezyne on 2016/9/29.
+//  Created by Ray on 2016/9/29.
 //  Copyright © 2016年 test. All rights reserved.
 //
 
 #import "AppDelegate.h"
+#import "Constant.h"
 
 @interface AppDelegate ()
 
@@ -17,6 +18,10 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    
+    [[UINavigationBar appearance] setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor whiteColor]}];
+    [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
+    
     return YES;
 }
 

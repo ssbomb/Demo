@@ -9,5 +9,6 @@
 #import <Foundation/Foundation.h>
 
 @interface DemoManager : NSObject
-
++ (DemoManager *)sharedInstance;
+-(void)getDatafromServer:(int)page withSucess:(void(^)(NSMutableArray*))success;
 @end
